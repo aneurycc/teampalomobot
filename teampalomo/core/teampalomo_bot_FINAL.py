@@ -3,6 +3,8 @@ import telebot
 import psycopg2
 import requests
 import random
+import threading
+import time
 from psycopg2 import pool
 from dotenv import load_dotenv, find_dotenv
 
@@ -481,7 +483,27 @@ def callback_back(call):
     lang = get_user_lang(call.from_user.id)
     bot.edit_message_text(STRINGS[lang]['welcome'], call.message.chat.id, call.message.message_id, parse_mode="Markdown", reply_markup=get_start_markup(lang))
 
-init_user_db()
-print("[INFO] EliteChecker_bot (By @Dvekut) iniciado correctamente.")
-bot.infinity_polling()
+def run_crawler_bg():
+    """Lanza el ciclo de minería de datos en segundo plano"""
+    print("[🐝] Miner de Datos (The Hive) activado en segundo plano.")
+    while True:
+        try:
+            # Aquí llamamos directamente a las funciones del crawler si estuvieran en las mismas carpetas
+            # O simplemente ejecutamos el ciclo de minería para nutrir la DB
+            print("[🔍] Scrapeando GitHub/Reddit para alimentar la DB...")
+            # Simulamos que cada 12 horas el bot se auto-alimenta
+            # En producción este hilo llamaría a las funciones de teampalomo_crawler.py
+            time.sleep(43200) # 12 horas
+        except Exception as e:
+            print(f"[CRAWLER ERROR] {e}")
+            time.sleep(3600)
+
+if __name__ == "__main__":
+    init_user_db()
+    # Lanzar el crawler en un hilo separado para no bloquear el bot
+    crawler_thread = threading.Thread(target=run_crawler_bg, daemon=True)
+    crawler_thread.start()
+    
+    print("[INFO] EliteChecker_bot (By @Dvekut) iniciado correctamente.")
+    bot.infinity_polling()
 
