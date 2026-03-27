@@ -191,7 +191,6 @@ STRINGS = {
             "🔥 *PRO:* 22 Consultas [$19.99] USDT [✨ MEJOR VALOR]\n"
             "👑 *Elite:* 28 Consultas [$34.99] USDT [🏢 TEAM ACCESS]\n\n"
             "👉 Haz clic en Comprar y contacta a @Dvekut\n"
-            
         ),
         'credits_depleted': (
             "⚠️ *CRÉDITOS AGOTADOS*\n\n"
@@ -411,7 +410,6 @@ def handle_bin(message):
         f"🚥 **{t[10]}:** {intel['burned']}\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
         f"👤 **{t[11]}:** {'ILLIMITED' if credits == 999 else credits - 1}\n"
-        
     )
     bot.edit_message_text(response, message.chat.id, query_msg.message_id, parse_mode="Markdown")
 
