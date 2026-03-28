@@ -186,21 +186,20 @@ STRINGS = {
         ),
         'plans': (
             "💎 *PLANES DE INTELIGENCIA DE GRADO MILITAR* 💎\n\n"
-            "🔹 *Starter:* 3 Consultas [$4.99] USDT\n"
-            "🔹 *Standard:* 7 Consultas [$8.99] USDT\n"
-            "🔥 *PRO:* 22 Consultas [$19.99] USDT [✨ MEJOR VALOR]\n"
-            "👑 *Elite:* 28 Consultas [$34.99] USDT [🏢 TEAM ACCESS]\n\n"
+            "🔹 3 Consultas [$4.99] USDT\n"
+            "🔹 7 Consultas [$8.99] USDT\n"
+            "🔥 22 Consultas [$19.99] USDT (Más vendido)\n"
+            "👑 28 Consultas [$34.99] USDT\n\n"
             "👉 Haz clic en Comprar y contacta a @Dvekut\n"
         ),
         'credits_depleted': (
             "⚠️ *CRÉDITOS AGOTADOS*\n\n"
             "Has consumido tus consultas de prueba. Selecciona un plan:\n\n"
-            "🔹 *Starter:* 3 Consultas [$4.99] USDT\n"
-            "🔹 *Standard:* 7 Consultas [$8.99] USDT\n"
-            "🔥 *PRO:* 22 Consultas [$19.99] USDT [✨ MEJOR VALOR]\n"
-            "👑 *Elite:* 28 Consultas [$34.99] USDT [🏢 TEAM ACCESS]\n\n"
-            "👉 Contacta a @Dvekut para activar tu pack\n\n"
-            
+            "🔹 3 Consultas [$4.99] USDT\n"
+            "🔹 7 Consultas [$8.99] USDT\n"
+            "🔥 22 Consultas [$19.99] USDT (Más vendido)\n"
+            "👑 28 Consultas [$34.99] USDT\n\n"
+            "👉 Contacta a @Dvekut para activar tu pack\n"
         ),
         'back': "⬅️ Volver",
         'btn_bin': "🔍 Analizar BIN",
@@ -241,22 +240,20 @@ STRINGS = {
         ),
         'plans': (
             "💎 *MILITARY-GRADE INTELLIGENCE PLANS* 💎\n\n"
-            "🔹 *Starter:* 3 Queries [$4.99] USDT\n"
-            "🔹 *Standard:* 7 Queries [$8.99] USDT\n"
-            "🔥 *PRO:* 22 Queries [$19.99] USDT [✨ BEST VALUE]\n"
-            "👑 *Elite:* 28 Queries [$34.99] USDT [🏢 TEAM ACCESS]\n\n"
+            "🔹 3 Queries [$4.99] USDT\n"
+            "🔹 7 Queries [$8.99] USDT\n"
+            "🔥 22 Queries [$19.99] USDT (Best seller)\n"
+            "👑 28 Queries [$34.99] USDT\n\n"
             "👉 Click Buy and contact @Dvekut\n"
-            
         ),
         'credits_depleted': (
             "⚠️ *CREDITS DEPLETED*\n\n"
             "You used your trial queries. Select a plan:\n\n"
-            "🔹 *Starter:* 3 Queries [$4.99] USDT\n"
-            "🔹 *Standard:* 7 Queries [$8.99] USDT\n"
-            "🔥 *PRO:* 22 Queries [$19.99] USDT [✨ BEST VALUE]\n"
-            "👑 *Elite:* 28 Queries [$34.99] USDT [🏢 TEAM ACCESS]\n\n"
-            "👉 Contact @Dvekut to activate your pack\n\n"
-            
+            "🔹 3 Queries [$4.99] USDT\n"
+            "🔹 7 Queries [$8.99] USDT\n"
+            "🔥 22 Queries [$19.99] USDT (Best seller)\n"
+            "👑 28 Queries [$34.99] USDT\n\n"
+            "👉 Contact @Dvekut to activate your pack\n"
         ),
         'back': "⬅️ Back",
         'btn_bin': "🔍 Analyze BIN",
