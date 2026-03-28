@@ -1,8 +1,5 @@
 [providers]
 python = true
 
-[phases.setup]
-aptPkgs = ["libpq5", "libpq-dev", "gcc", "python3-dev", "build-essential", "libssl-dev", "libffi-dev"]
-
 [start]
 cmd = "python teampalomo/core/teampalomo_bot_FINAL.py"
