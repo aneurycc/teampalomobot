@@ -119,21 +119,38 @@ def get_advanced_intel(bin_data):
         sec = "Security: LOW (Vulnerable) 🟢"
         avs = "AVS: Optional"
         rules = "3DS/OTP: Non-Mandatory <$100"
+        min_lr, max_lr = 75, 96
+        gateway = "Shopify, Stripe C&C, E-commerce (No 3DS)"
     elif country_code in high_sec:
         sec = "Security: HIGH (Strict) 🔴"
         avs = "AVS: COMPULSORY"
         rules = "3DS/OTP: High probability"
+        min_lr, max_lr = 10, 38
+        gateway = "Hardened Gateways (Full AVS/3DS bypass needed)"
     else:
         sec = "Security: Moderate 🟡"
         avs = "AVS: Variable"
         rules = "3DS/OTP: Local context dependent"
+        min_lr, max_lr = 40, 70
+        gateway = "Standard Processors (Stripe, Square, Adyen)"
 
     bank_rep = "Rep: Standard"
-    if any(k in bank_name for k in ['CHASE', 'BOFA', 'HSBC']): bank_rep = "Rep: AGGRESSIVE FILTERS ⛔"
+    if any(k in bank_name for k in ['CHASE', 'BOFA', 'HSBC', 'AMERICAN EXPRESS', 'BARCLAYS', 'CITI']): 
+        bank_rep = "Rep: AGGRESSIVE FILTERS ⛔"
+        max_lr = max(min_lr + 5, max_lr - 25)
+        min_lr = max(5, min_lr - 15)
+    elif level_intel in ["PLATINUM/BLACK/INFINITE 💎💎", "BLACK (INFINITE) 👑"]:
+        max_lr = max(min_lr + 5, max_lr - 10)
     
-    gateway = "Stripe, Shopify, Amazon, etc."
-    live_rate = f"{random.randint(75, 98)}%"
-    burned = "Clean ✅"
+    live_pct = random.randint(int(min_lr), int(max_lr))
+    live_rate = f"{live_pct}%"
+    
+    if live_pct >= 75:
+        burned = "Clean ✅"
+    elif live_pct >= 35:
+        burned = "Monitorado / Riesgo Moderado ⚠️"
+    else:
+        burned = "Alto Riesgo de Bloqueo 🔴"
 
     return {"level": level_intel, "security": sec, "avs": avs, "gateway": gateway, "live_rate": live_rate, "bank_rep": bank_rep, "rules": rules, "burned": burned}
 
