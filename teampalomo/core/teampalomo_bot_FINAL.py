@@ -387,12 +387,27 @@ def handle_bin(message):
     }
     t = resp_titles[lang]
 
+    brand_val = data.get('brand', '')
+    bank_data = data.get('bank') or {}
+    bank_name = bank_data.get('name')
+    if not bank_name or str(bank_name).strip().upper() in ['N/A', 'NONE', '']:
+        if brand_val and str(brand_val).strip().upper() != 'N/A':
+            bank_name = str(brand_val).upper()
+        elif bin_num.startswith('34') or bin_num.startswith('37'):
+            bank_name = "AMERICAN EXPRESS"
+        elif bin_num.startswith('4'):
+            bank_name = "VISA"
+        elif bin_num.startswith('5'):
+            bank_name = "MASTERCARD"
+        else:
+            bank_name = "N/A"
+
     response = (
         f"💳 **{t[0]}**\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
         f"🔢 **{t[1]}:** `{bin_num}`\n"
         f"🛠️ **{t[2]}:** {data.get('type', 'N/A').upper()}\n"
-        f"🏦 **{t[3]}:** {data.get('bank', {}).get('name', 'N/A')}\n"
+        f"🏦 **{t[3]}:** {bank_name}\n"
         f"🌍 **{t[4]}:** {data.get('country', {}).get('name', 'N/A')} ({data.get('country', {}).get('alpha2', '??')})\n"
         f"📊 **{t[5]}:** {intel['level']}\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
