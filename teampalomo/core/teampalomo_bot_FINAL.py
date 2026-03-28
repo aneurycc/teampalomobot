@@ -499,6 +499,23 @@ if __name__ == "__main__":
     crawler_thread = threading.Thread(target=run_crawler_bg, daemon=True)
     crawler_thread.start()
     
-    print("[INFO] EliteChecker_bot (By @Dvekut) iniciado correctamente.")
-    bot.infinity_polling()
+    print("[INFO] EliteChecker_bot (By @Dvekut) iniciado correctamente en infraestructura resiliente.")
+    
+    backoff = 2
+    while True:
+        try:
+            bot.infinity_polling(timeout=20, long_polling_timeout=15)
+            # infinity_polling should theoretically never exit unless stopped intentionally
+            break
+        except requests.exceptions.ConnectionError as e:
+            print(f"[ERROR] Conexión de red caída. Reintentando en {backoff}s. Detalle: {e}")
+            time.sleep(backoff)
+            backoff = min(backoff * 2, 60)
+        except requests.exceptions.ReadTimeout as e:
+            print(f"[WARN] Timeout de lectura de Telegram API. Reintentando. Detalle: {e}")
+            time.sleep(backoff)
+        except Exception as e:
+            print(f"[CRITICAL] Error fatal en el polling: {e}")
+            time.sleep(backoff)
+            backoff = min(backoff * 2, 120)
 

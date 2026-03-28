@@ -1,0 +1,5 @@
+[phases.setup]
+nixPkgs = ["python311", "libpq", "gcc", "openssl", "libffi"]
+
+[start]
+cmd = "python core/teampalomo_bot_FINAL.py"
