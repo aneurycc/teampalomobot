@@ -1,0 +1,6 @@
+id,full_name,ssn,dob,address,city,state,zip,email,phone
+1,John Doe,123-45-6789,1980-01-01,123 Main St,Springfield,IL,62701,john.doe@gmail.com,+1-555-0100
+2,Jane Smith,987-65-4321,1992-05-15,456 Oak Ave,Seattle,WA,98101,jane_smith92@yahoo.com,+1-555-0200
+3,Robert Johnson,555-12-3456,1975-11-20,789 Pine Ln,Austin,TX,73301,robert.j@hotmail.com,+1-555-0300
+4,Maria Garcia,111-22-3333,1988-08-08,321 Elm St,Miami,FL,33101,mgarcia_florida@gmail.com,+1-555-0400
+5,William Davis,444-55-6666,2000-12-25,654 Maple Dr,Denver,CO,80201,will.davis2000@outlook.com,+1-555-0500

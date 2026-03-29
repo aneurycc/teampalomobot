@@ -8,6 +8,14 @@ import time
 from psycopg2 import pool
 from dotenv import load_dotenv, find_dotenv
 
+try:
+    from core.mdie_engine import mdie
+    from core.fuzzy_matcher import FuzzyPIICorrelator
+    correlator = FuzzyPIICorrelator(mdie)
+except Exception as e:
+    print(f"[MDIE ALERTA] No se pudo cargar el motor MDIE completo. Faltan dependencias o se corre desde la raíz equivocada. Detalle: {e}")
+    correlator = None
+
 # Cargar variables de entorno
 load_dotenv(find_dotenv())
 
@@ -220,6 +228,7 @@ STRINGS = {
         ),
         'back': "⬅️ Volver",
         'btn_bin': "🔍 Analizar BIN",
+        'btn_dox': "🕵️‍♂️ Buscar SSN/Persona",
         'btn_plans': "🗒️ Planes",
         'btn_support': "👤 Soporte",
         'btn_tut': "📖 Tutorial",
@@ -227,7 +236,9 @@ STRINGS = {
         'btn_lang': "🌐 Idioma / Language",
         'checking': "⌛ *Consultando Inteligencia Bancaria...*",
         'error_bin': "❌ *Error:* No se encontró data para el BIN `{bin_num}`.",
-        'usage': "❌ *Uso Incorrecto*\nEnvía: `/bin <numero>`"
+        'usage': "❌ *Uso Incorrecto*\nEnvía: `/bin <numero>`",
+        'dox_usage': "❌ *Uso Incorrecto*\nEnvía: `/ssn <correo o numero ssn>`\n*Ejemplo:* `/ssn email@gmail.com`",
+        'dox_checking': "⌛ *Perforando bases de datos de brechas... (MDIE Engine)*",
     },
     'en': {
         'welcome': (
@@ -274,6 +285,7 @@ STRINGS = {
         ),
         'back': "⬅️ Back",
         'btn_bin': "🔍 Analyze BIN",
+        'btn_dox': "🕵️‍♂️ Search SSN/Person",
         'btn_plans': "🗒️ Plans",
         'btn_support': "👤 Support",
         'btn_tut': "📖 Tutorial",
@@ -281,7 +293,9 @@ STRINGS = {
         'btn_lang': "🌐 Language / Idioma",
         'checking': "⌛ *Consulting Banking Intelligence...*",
         'error_bin': "❌ *Error:* No data found for BIN `{bin_num}`.",
-        'usage': "❌ *Incorrect Use*\nSend: `/bin <number>`"
+        'usage': "❌ *Incorrect Use*\nSend: `/bin <number>`",
+        'dox_usage': "❌ *Incorrect Use*\nSend: `/ssn <email or ssn number>`\n*Example:* `/ssn email@gmail.com`",
+        'dox_checking': "⌛ *Drilling through breach databases... (MDIE Engine)*",
     }
 }
 
@@ -325,12 +339,13 @@ def get_reply_markup(lang):
     s = STRINGS[lang]
     # Usamos KeyboardButtons para todas las funciones principales
     btn_bin = telebot.types.KeyboardButton(s['btn_bin'])
+    btn_dox = telebot.types.KeyboardButton(s['btn_dox'])
     btn_plans = telebot.types.KeyboardButton(s['btn_plans'])
     btn_tut = telebot.types.KeyboardButton(s['btn_tut'])
     btn_faq = telebot.types.KeyboardButton(s['btn_faq'])
     btn_lang = telebot.types.KeyboardButton(s['btn_lang'])
     
-    markup.add(btn_bin)
+    markup.add(btn_bin, btn_dox)
     markup.add(btn_plans, btn_tut)
     markup.add(btn_faq, btn_lang)
     return markup
@@ -442,10 +457,77 @@ def handle_bin(message):
     )
     bot.edit_message_text(response, message.chat.id, query_msg.message_id, parse_mode="Markdown")
 
+@bot.message_handler(commands=['ssn', 'dox', 'search', 'person'])
+def handle_ssn(message):
+    user_id = message.from_user.id
+    lang = get_user_lang(user_id)
+    s = STRINGS[lang]
+    has_access, credits = check_user_access(user_id)
+    
+    if not has_access:
+        markup = telebot.types.InlineKeyboardMarkup()
+        markup.add(telebot.types.InlineKeyboardButton(s['btn_support'], url="https://t.me/Dvekut"))
+        bot.reply_to(message, s['credits_depleted'], parse_mode="Markdown", reply_markup=markup)
+        return
+
+    parts = message.text.split(maxsplit=1)
+    if len(parts) < 2:
+        bot.reply_to(message, s['dox_usage'], parse_mode="Markdown")
+        return
+
+    target = parts[1].strip()
+    query_msg = bot.reply_to(message, s['dox_checking'], parse_mode="Markdown")
+    
+    if not correlator:
+        bot.edit_message_text("❌ *Error crítico:* MDIE Engine no inicializado. Faltan dependencias o bases de datos SQLite.", message.chat.id, query_msg.message_id, parse_mode="Markdown")
+        return
+        
+    ident_type = 'email' if '@' in target else 'ssn'
+    if not '@' in target and any(c.isalpha() for c in target):
+        ident_type = 'full_name'
+        
+    dox_report = correlator.build_full_profile(target, identifier_type=ident_type)
+    records = dox_report.get('associated_records', [])
+    
+    if not records:
+         bot.edit_message_text(f"❌ *Not Found:* No hay registros en el data lake para `{target}`.", message.chat.id, query_msg.message_id, parse_mode="Markdown")
+         return
+         
+    use_credit(user_id)
+    
+    # Tomar el mejor registro y combinar info
+    best = records[0]
+    
+    sources = ", ".join(dox_report.get('meta', {}).get('sources', ['Unknown Leak']))
+    total_found = len(records)
+    
+    resp_t = {
+        'es': ["REPORTE PII DE IDENTIDAD", "Nombre", "Email", "Teléfono", "Ubicación", "SSN / ID", "Fuentes de Brecha", "Perfiles Relacionados"],
+        'en': ["PII IDENTITY REPORT", "Name", "Email", "Phone", "Location", "SSN / ID", "Breach Sources", "Related Profiles"]
+    }
+    t = resp_t[lang]
+    
+    response = (
+        f"🕵️‍♂️ **{t[0]}**\n"
+        f"━━━━━━━━━━━━━━━━━━━━\n"
+        f"👤 **{t[1]}:** `{best.get('full_name', 'N/A')}`\n"
+        f"📧 **{t[2]}:** `{best.get('email', 'N/A')}`\n"
+        f"📞 **{t[3]}:** `{best.get('phone', 'N/A')}`\n"
+        f"🌍 **{t[4]}:** `{best.get('address', 'N/A')}, {best.get('city', '')} {best.get('state', '')} {best.get('zip', '')}`.strip()\n"
+        f"🔴 **{t[5]}:** `{best.get('ssn', 'N/A')}` (DOB: {best.get('dob', 'N/A')})\n"
+        f"━━━━━━━━━━━━━━━━━━━━\n"
+        f"🗃️ **{t[6]}:** {sources}\n"
+        f"🔗 **{t[7]}:** {total_found} detectados en otras brechas.\n\n"
+        f"👤 **Créditos:** {'ILLIMITED' if credits == 999 else credits - 1}\n"
+    )
+    
+    bot.edit_message_text(response, message.chat.id, query_msg.message_id, parse_mode="Markdown")
+
+
 # Handlers para los botones de la Botonera (ReplyKeyboard)
 @bot.message_handler(func=lambda m: m.text in [
-    STRINGS['es']['btn_bin'], STRINGS['es']['btn_plans'], STRINGS['es']['btn_tut'], STRINGS['es']['btn_faq'], STRINGS['es']['btn_lang'],
-    STRINGS['en']['btn_bin'], STRINGS['en']['btn_plans'], STRINGS['en']['btn_tut'], STRINGS['en']['btn_faq'], STRINGS['en']['btn_lang']
+    STRINGS['es']['btn_bin'], STRINGS['es']['btn_dox'], STRINGS['es']['btn_plans'], STRINGS['es']['btn_tut'], STRINGS['es']['btn_faq'], STRINGS['es']['btn_lang'],
+    STRINGS['en']['btn_bin'], STRINGS['en']['btn_dox'], STRINGS['en']['btn_plans'], STRINGS['en']['btn_tut'], STRINGS['en']['btn_faq'], STRINGS['en']['btn_lang']
 ])
 def handle_reply_buttons(message):
     user_id = message.from_user.id
@@ -453,6 +535,9 @@ def handle_reply_buttons(message):
     s = STRINGS[lang]
     if message.text == s['btn_bin']:
         p = {'es': "🔢 Escribe o copia esto para iniciar análisis:\n\n`/bin `", 'en': "🔢 Type or copy this to start analysis:\n\n`/bin `"}
+        bot.reply_to(message, p[lang], parse_mode="Markdown")
+    elif message.text == s['btn_dox']:
+        p = {'es': "🕵️‍♂️ Escribe el comando con el email/SSN de la persona:\n\n`/ssn nombre@gmail.com`", 'en': "🕵️‍♂️ Type the command with the email/SSN:\n\n`/ssn name@gmail.com`"}
         bot.reply_to(message, p[lang], parse_mode="Markdown")
     elif message.text == s['btn_plans']:
         markup = telebot.types.InlineKeyboardMarkup()
